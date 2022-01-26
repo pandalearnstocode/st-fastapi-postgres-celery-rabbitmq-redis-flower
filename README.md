@@ -124,3 +124,18 @@ As the name suggests this is the frontend application. This will call APIs to sh
 ## Reference:
 * https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-overview?tabs=csharp
 * https://arxiv.org/pdf/2103.00033.pdf
+
+
+
+
+## TODO:
+
+* fix status call
+* write load tests
+* run load test for docker compose
+* validate communication using internal network
+* add ssl
+* convert in docker swarm
+* run load test docker swarm
+* convert in k8s
+* run load test for k8s
