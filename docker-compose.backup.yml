@@ -1,0 +1,90 @@
+version: "3"
+services:
+    mt-aaa-ui-app:
+        container_name: mt-aaa-ui-app
+        build: mt-aaa-ui-app/
+        command: streamlit run app.py --server.address="0.0.0.0" --server.port="8080"  --server.headless=true
+        ports: 
+          - 8080:8080
+        networks:
+          - backend-network
+          - frontend-network
+    mt-aaa-be-api:
+        container_name: mt-aaa-be-api
+        build: mt-aaa-be-api/
+        command: bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 5000'
+        volumes:
+          - ./mt-aaa-be-job/app/training_job.py:/app/api/training_job.py
+        networks:
+            - backend-network
+            - frontend-network
+        ports:
+            - 5000:5000
+        env_file: .env
+        depends_on:
+            - mt-aaa-be-job
+    mt-aaa-be-job:
+        container_name: mt-aaa-be-job
+        build: mt-aaa-be-job/
+        env_file: .env
+        depends_on:
+            - mt-aaa-ds-redis
+            - mt-aaa-mb-rmq
+        volumes:
+          - ./mt-aaa-be-job/app/:/app
+        networks:
+            - backend-network
+            - frontend-network
+        command: celery -A app.training_job.app worker --loglevel=info
+    mt-aaa-mb-rmq:
+        container_name: mt-aaa-mb-rmq
+        build: mt-aaa-mb-rmq/
+        volumes:
+            - "./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf"
+        ports:
+            - "5672:5672"
+        env_file: .env
+        networks:
+            - backend-network
+            - frontend-network
+    mt-aaa-ds-redis:
+        container_name: mt-aaa-ds-redis
+        build: mt-aaa-ds-redis/
+        ports:
+            - "6379:6379"
+        env_file: .env
+        networks:
+            - backend-network
+            - frontend-network
+    mt-aaa-ui-flower:
+        container_name: mt-aaa-ui-flower
+        build: mt-aaa-ui-flower/
+        command: celery -A app.training_job.app flower --port=5555 --broker=redis://redis:6379/0
+        ports:
+            - 5555:5555
+        depends_on:
+            - mt-aaa-ds-redis
+            - mt-aaa-mb-rmq
+        volumes:
+          - ./mt-aaa-be-job/app/:/app
+        env_file: .env
+        networks: 
+            - backend-network
+            - frontend-network
+    db:
+        container_name: db
+        build: mt-aaa-db-app/
+        expose:
+        - 5432
+        env_file: .env
+        networks: 
+            - backend-network
+            - frontend-network        
+volumes:
+  postgres_data:
+networks:
+  backend-network:
+    driver: bridge
+    external: false
+  frontend-network:
+    external: true
