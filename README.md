@@ -130,7 +130,9 @@ As the name suggests this is the frontend application. This will call APIs to sh
 
 ## TODO:
 
+* move code to ml lib
 * fix status call
+* add other required components (grafana, prometheus, dozzle, etc)
 * write load tests
 * run load test for docker compose
 * validate communication using internal network
