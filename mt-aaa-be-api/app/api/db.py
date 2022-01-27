@@ -19,7 +19,7 @@ class ModelMetaData(ormar.Model):
 
     id: int = ormar.Integer(primary_key=True)
     model_id: str = ormar.String(max_length=128, unique=True, nullable=False)
-    status: str = ormar.String(max_length=128, unique=False, nullable=False)
+    model_status: str = ormar.String(max_length=128, unique=False, nullable=False)
     model_name: str = ormar.String(max_length=128, unique=False, nullable=False)
 
 engine = sqlalchemy.create_engine(settings.db_url)

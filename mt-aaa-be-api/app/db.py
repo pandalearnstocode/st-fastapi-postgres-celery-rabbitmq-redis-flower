@@ -10,6 +10,9 @@ from sqlalchemy import (
 )
 
 from databases import Database
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
