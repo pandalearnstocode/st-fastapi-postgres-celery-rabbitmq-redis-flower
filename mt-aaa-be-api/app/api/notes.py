@@ -3,58 +3,54 @@ from typing import List
 from fastapi import APIRouter, HTTPException, Path
 
 from app.api import crud
-from app.api.models import NoteDB, NoteSchema
+from app.api.models import ModelMetaData, ModelMetaDataSchema
 
 router = APIRouter()
 
 
-@router.post("/", response_model=NoteDB, status_code=201)
-async def create_note(payload: NoteSchema):
-    note_id = await crud.post(payload)
-
+@router.post("/", response_model=ModelMetaData, status_code=201)
+async def create_note(payload: ModelMetaDataSchema):
+    model_id = await crud.post(payload)
+    # Model should be created and have an id
     response_object = {
-        "id": note_id,
-        "title": payload.title,
-        "description": payload.description,
+        "model_id": model_id,
+        "model_status": payload.model_status,
+        "model_name": payload.model_name,
     }
     return response_object
 
 
-@router.get("/{id}/", response_model=NoteDB)
-async def read_note(id: int = Path(..., gt=0),):
-    note = await crud.get(id)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    return note
+@router.get("/{model_id}/", response_model=ModelMetaData)
+async def read_note(model_id: str,):
+    model = await crud.get(model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    return model
 
 
-@router.get("/", response_model=List[NoteDB])
+@router.get("/", response_model=List[ModelMetaData])
 async def read_all_notes():
     return await crud.get_all()
 
 
-@router.put("/{id}/", response_model=NoteDB)
-async def update_note(payload: NoteSchema, id: int = Path(..., gt=0),):
-    note = await crud.get(id)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-
-    note_id = await crud.put(id, payload)
-
+@router.put("/{model_id}/", response_model=ModelMetaData)
+async def update_note(payload: ModelMetaDataSchema, model_id: str,):
+    model = await crud.get(model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    model_id = await crud.put(model_id, payload)
     response_object = {
-        "id": note_id,
-        "title": payload.title,
-        "description": payload.description,
+        "model_id": model_id,
+        "model_name": payload.model_name,
+        "model_status": payload.model_status,
     }
     return response_object
 
 
-@router.delete("/{id}/", response_model=NoteDB)
-async def delete_note(id: int = Path(..., gt=0)):
-    note = await crud.get(id)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-
-    await crud.delete(id)
-
-    return note
+@router.delete("/{model_id}/", response_model=ModelMetaData)
+async def delete_note(model_id: str):
+    model = await crud.get(model_id)
+    if not model:
+        raise HTTPException(status_code=404, detail="Model not found")
+    await crud.delete(model_id)
+    return model
